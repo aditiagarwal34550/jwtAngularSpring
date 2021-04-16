@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 import com.bezkoder.springjwt.security.services.UserDetailsImpl;
 import io.jsonwebtoken.*;
@@ -37,22 +39,28 @@ public class JwtUtils {
 		return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
 	}
 
-	public boolean validateJwtToken(String authToken) {
-		try {
-			Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
-			return true;
-		} catch (SignatureException e) {
-			logger.error("Invalid JWT signature: {}", e.getMessage());
-		} catch (MalformedJwtException e) {
-			logger.error("Invalid JWT token: {}", e.getMessage());
-		} catch (ExpiredJwtException e) {
-			logger.error("JWT token is expired: {}", e.getMessage());
-		} catch (UnsupportedJwtException e) {
-			logger.error("JWT token is unsupported: {}", e.getMessage());
-		} catch (IllegalArgumentException e) {
-			logger.error("JWT claims string is empty: {}", e.getMessage());
-		}
+	public boolean validateJwtToken(String authToken, HttpServletRequest httpServletRequest) {
+                try {
+                        Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
+                        return true;
+                } catch (SignatureException e) {
+                //      log.error("Invalid JWT signature: {}", e.getMessage());
+                        httpServletRequest.setAttribute("signature","Invalid Signature. Loggind out");
+                } catch (MalformedJwtException e) {
+                //      log.error("Invalid JWT token: {}", e.getMessage());
+                        httpServletRequest.setAttribute("malformed","Invalid JWT token. Loggind out");
+                } catch (ExpiredJwtException e) {
+                //      log.error("JWT token is expired: {}", e.getMessage());
+                        httpServletRequest.setAttribute("expired","Expired JWT token is expired. Login again.");
+                } catch (UnsupportedJwtException e) {
+                //      log.error("JWT token is unsupported: {}", e.getMessage());
+                        httpServletRequest.setAttribute("unsupported","Unsupported JWT token. Logging out.");
+                } catch (IllegalArgumentException e) {
+                //      log.error("JWT claims string is empty: {}", e.getMessage());
+                        httpServletRequest.setAttribute("illegalargument","JWT claims string is empty. Logging out");
+                }
 
-		return false;
-	}
+                return false;
+        }
+
 }
